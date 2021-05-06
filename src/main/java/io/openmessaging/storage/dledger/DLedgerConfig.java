@@ -18,6 +18,7 @@
 package io.openmessaging.storage.dledger;
 
 import com.beust.jcommander.Parameter;
+import io.openmessaging.storage.dledger.fsm.StateMachine;
 import io.openmessaging.storage.dledger.store.file.DLedgerMmapFileStore;
 import java.io.File;
 
@@ -37,7 +38,6 @@ public class DLedgerConfig {
 
     @Parameter(names = {"--store-base-dir", "-s"}, description = "The base store dir of this server")
     private String storeBaseDir = File.separator + "tmp" + File.separator + "dledgerstore";
-
 
     @Parameter(names = {"--peer-push-throttle-point"}, description = "When the follower is behind the leader more than this value, it will trigger the throttle")
     private int peerPushThrottlePoint = 300 * 1024 * 1024;
@@ -83,9 +83,11 @@ public class DLedgerConfig {
     @Parameter(names = {"--preferred-leader-id"}, description = "Preferred LeaderId")
     private String preferredLeaderId;
     private long maxLeadershipTransferWaitIndex = 10000;
-    private int minTakeLeadershipVoteIntervalMs =  30;
-    private int maxTakeLeadershipVoteIntervalMs =  100;
-
+    private int minTakeLeadershipVoteIntervalMs = 30;
+    private int maxTakeLeadershipVoteIntervalMs = 100;
+    private boolean enableStateMachine = false;
+    private int maxPendingTasksNum = maxPendingRequestsNum * 3;
+    private StateMachine stateMachine;
 
     public String getDefaultPath() {
         return storeBaseDir + File.separator + "dledger-" + selfId;
@@ -369,5 +371,29 @@ public class DLedgerConfig {
 
     public void setMaxTakeLeadershipVoteIntervalMs(int maxTakeLeadershipVoteIntervalMs) {
         this.maxTakeLeadershipVoteIntervalMs = maxTakeLeadershipVoteIntervalMs;
+    }
+
+    public boolean isEnableStateMachine() {
+        return enableStateMachine;
+    }
+
+    public void setEnableStateMachine(boolean enableStateMachine) {
+        this.enableStateMachine = enableStateMachine;
+    }
+
+    public int getMaxPendingTasksNum() {
+        return maxPendingTasksNum;
+    }
+
+    public void setMaxPendingTasksNum(int maxPendingTasksNum) {
+        this.maxPendingTasksNum = maxPendingTasksNum;
+    }
+
+    public StateMachine getStateMachine() {
+        return stateMachine;
+    }
+
+    public void setStateMachine(StateMachine stateMachine) {
+        this.stateMachine = stateMachine;
     }
 }

@@ -14,23 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.openmessaging.storage.dledger.protocol;
 
-import java.util.concurrent.CompletableFuture;
+public class ApplyTaskRequest extends AppendEntryRequest {
+    private long expectTerm = -1;
 
-/**
- * Both the RaftLogServer(inbound) and RaftRpcService (outbound) should implement this protocol
- */
-public interface DLedgerClientProtocolHandler {
+    public long getExpectTerm() {
+        return expectTerm;
+    }
 
-    CompletableFuture<AppendEntryResponse> handleAppend(AppendEntryRequest request) throws Exception;
-
-    CompletableFuture<GetEntriesResponse> handleGet(GetEntriesRequest request) throws Exception;
-
-    CompletableFuture<MetadataResponse> handleMetadata(MetadataRequest request) throws Exception;
-
-    CompletableFuture<LeadershipTransferResponse> handleLeadershipTransfer(LeadershipTransferRequest leadershipTransferRequest) throws Exception;
-
-    CompletableFuture<ApplyTaskResponse> handleApply(ApplyTaskRequest applyTaskRequest) throws Exception;
+    public void setExpectTerm(long expectTerm) {
+        this.expectTerm = expectTerm;
+    }
 }

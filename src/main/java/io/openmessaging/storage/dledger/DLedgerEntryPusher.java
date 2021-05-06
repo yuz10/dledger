@@ -385,6 +385,7 @@ public class DLedgerEntryPusher {
                 DLedgerUtils.sleep(quota.leftNow());
             }
         }
+
         private void doAppendInner(long index) throws Exception {
             DLedgerEntry entry = dLedgerStore.get(index);
             PreConditions.check(entry != null, DLedgerResponseCode.UNKNOWN, "writeIndex=%d", index);
@@ -612,9 +613,8 @@ public class DLedgerEntryPusher {
     }
 
     /**
-     * This thread will be activated by the follower.
-     * Accept the push request and order it by the index, then append to ledger store one by one.
-     *
+     * This thread will be activated by the follower. Accept the push request and order it by the index, then append to
+     * ledger store one by one.
      */
     private class EntryHandler extends ShutdownAbleThread {
 
@@ -731,16 +731,19 @@ public class DLedgerEntryPusher {
         }
 
         /**
-         * The leader does push entries to follower, and record the pushed index. But in the following conditions, the push may get stopped.
-         *   * If the follower is abnormally shutdown, its ledger end index may be smaller than before. At this time, the leader may push fast-forward entries, and retry all the time.
-         *   * If the last ack is missed, and no new message is coming in.The leader may retry push the last message, but the follower will ignore it.
+         * The leader does push entries to follower, and record the pushed index. But in the following conditions, the
+         * push may get stopped. * If the follower is abnormally shutdown, its ledger end index may be smaller than
+         * before. At this time, the leader may push fast-forward entries, and retry all the time. * If the last ack is
+         * missed, and no new message is coming in.The leader may retry push the last message, but the follower will
+         * ignore it.
+         *
          * @param endIndex
          */
         private void checkAbnormalFuture(long endIndex) {
             if (DLedgerUtils.elapsed(lastCheckFastForwardTimeMs) < 1000) {
                 return;
             }
-            lastCheckFastForwardTimeMs  = System.currentTimeMillis();
+            lastCheckFastForwardTimeMs = System.currentTimeMillis();
             if (writeRequestMap.isEmpty()) {
                 return;
             }
@@ -762,12 +765,12 @@ public class DLedgerEntryPusher {
                     continue;
                 }
                 //Just OK
-                if (index ==  endIndex + 1) {
+                if (index == endIndex + 1) {
                     //The next entry is coming, just return
                     return;
                 }
                 //Fast forward
-                TimeoutFuture<PushEntryResponse> future  = (TimeoutFuture<PushEntryResponse>) pair.getValue();
+                TimeoutFuture<PushEntryResponse> future = (TimeoutFuture<PushEntryResponse>) pair.getValue();
                 if (!future.isTimeOut()) {
                     continue;
                 }
