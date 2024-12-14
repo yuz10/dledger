@@ -192,7 +192,7 @@ public class DLedgerLeaderElector {
         handleRoleChange(term, MemberState.Role.FOLLOWER);
     }
 
- public CompletableFuture<VoteResponse> handleVote(VoteRequest request, boolean self) {
+    public CompletableFuture<VoteResponse> handleVote(VoteRequest request, boolean self) {
         //hold the lock to get the latest term, leaderId, ledgerEndIndex
         synchronized (memberState) {
             if (!memberState.isPeerMember(request.getLeaderId())) {
