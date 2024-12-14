@@ -192,7 +192,7 @@ public class DLedgerLeaderElector {
         handleRoleChange(term, MemberState.Role.FOLLOWER);
     }
 
-    public CompletableFuture<VoteResponse> handleVote(VoteRequest request, boolean self) {
+ public CompletableFuture<VoteResponse> handleVote(VoteRequest request, boolean self) {
         //hold the lock to get the latest term, leaderId, ledgerEndIndex
         synchronized (memberState) {
             if (!memberState.isPeerMember(request.getLeaderId())) {
@@ -202,6 +202,14 @@ public class DLedgerLeaderElector {
             if (!self && memberState.getSelfId().equals(request.getLeaderId())) {
                 LOGGER.warn("[BUG] [HandleVote] selfId={} but remoteId={}", memberState.getSelfId(), request.getLeaderId());
                 return CompletableFuture.completedFuture(new VoteResponse(request).term(memberState.currTerm()).voteResult(VoteResponse.RESULT.REJECT_UNEXPECTED_LEADER));
+            }
+
+            if (request.getTerm() > memberState.currTerm()) {
+                //stepped down by larger term
+                changeRoleToCandidate(request.getTerm());
+                needIncreaseTermImmediately = true;
+                //only can handleVote when the term is consistent
+                return CompletableFuture.completedFuture(new VoteResponse(request).term(memberState.currTerm()).voteResult(VoteResponse.RESULT.REJECT_TERM_NOT_READY));
             }
 
             if (request.getLedgerEndTerm() < memberState.getLedgerEndTerm()) {
@@ -224,12 +232,6 @@ public class DLedgerLeaderElector {
                         return CompletableFuture.completedFuture(new VoteResponse(request).term(memberState.currTerm()).voteResult(VoteResponse.RESULT.REJECT_ALREADY_VOTED));
                     }
                 }
-            } else {
-                //stepped down by larger term
-                changeRoleToCandidate(request.getTerm());
-                needIncreaseTermImmediately = true;
-                //only can handleVote when the term is consistent
-                return CompletableFuture.completedFuture(new VoteResponse(request).term(memberState.currTerm()).voteResult(VoteResponse.RESULT.REJECT_TERM_NOT_READY));
             }
 
             if (request.getTerm() < memberState.getLedgerEndTerm()) {
